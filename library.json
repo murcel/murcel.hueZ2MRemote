@@ -1,16 +1,12 @@
 {
     "id": "{C3C3A4B1-6A9F-4D4C-812F-281F8C4F5062}",
-    "author": "Marc Murczak",
     "name": "HueZ2MRemote Library",
+    "author": "Marc Murczak",
     "url": "https://github.com/murcel/hueZ2MRemote",
+    "compatibility": {
+        "version": "7.1"
+    },
     "version": "1.0",
-    "modules": [
-        {
-            "id": "{A52A1390-D5CC-43D9-B5B6-064FEDE92CBC}",
-            "name": "HueZ2MRemote",
-            "type": 3,
-            "vendor": "Murcel",
-            "path": "HueZ2MRemote"
-        }
-    ]
+    "build": 1,
+    "date": 20251116
 }
