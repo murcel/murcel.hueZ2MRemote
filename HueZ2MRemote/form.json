@@ -1,62 +1,107 @@
 {
-    "elements": [
-        {
-            "type": "NumberSpinner",
-            "name": "ActionVarId",
-            "caption": "Z2M Action Variable"
+  "elements": [
+    {
+      "type": "Label",
+      "caption": "Konfiguration des Hue-Z2M Schalters"
+    },
+
+    {
+      "type": "SelectVariable",
+      "name": "ActionVarId",
+      "caption": "Taster-Aktionsvariable (Zigbee2MQTT / String)",
+      "filter": "String"
+    },
+    {
+      "type": "SelectVariable",
+      "name": "DurationVarId",
+      "caption": "Dauer des Tastendrucks (Float)",
+      "filter": "Float"
+    },
+    {
+      "type": "SelectInstance",
+      "name": "RoomInstanceId",
+      "caption": "Automatiksteuerung (RoomMotionLightsDev2 – optional)",
+      "moduleID": "{E21F093C-FD7D-4750-9576-D42B89B15E3C}"
+    },
+
+    {
+      "type": "NumberSpinner",
+      "name": "HoldThreshold",
+      "caption": "Haltezeit für Langdruck (Sekunden)",
+      "minimum": 0.5,
+      "maximum": 10,
+      "step": 0.1
+    },
+
+    {
+      "type": "Label",
+      "caption": "Ziel-Lichter (einzelne Lampen oder Gruppen)"
+    },
+    {
+      "type": "List",
+      "name": "Targets",
+      "caption": "Ziele",
+      "rowCount": 5,
+      "add": true,
+      "delete": true,
+      "columns": [
+        { "caption": "Name", "name": "name", "width": "200px", "edit": { "type": "ValidationTextBox" }},
+        { "caption": "SwitchVar", "name": "switchVar", "width": "120px", "edit": { "type": "SelectVariable", "filter": "Boolean" }},
+        { "caption": "DimmerVar", "name": "dimmerVar", "width": "120px", "edit": { "type": "SelectVariable", "filter": "Integer" }},
+        { "caption": "CTVar (COLOR_TEMP)", "name": "ctVar", "width": "140px", "edit": { "type": "SelectVariable", "filter": "Integer" }}
+      ]
+    },
+
+    {
+      "type": "Label",
+      "caption": "Button Mapping (erweitert)"
+    },
+    {
+      "type": "List",
+      "name": "ButtonMap",
+      "rowCount": 6,
+      "add": true,
+      "delete": true,
+      "columns": [
+        { "caption": "Button", "name": "button", "width": "80px", 
+          "edit": { "type": "ComboBox", "options": [
+              { "caption": "Ein (on)", "value": "on" },
+              { "caption": "Aus (off)", "value": "off" },
+              { "caption": "Heller (up)", "value": "up" },
+              { "caption": "Dunkler (down)", "value": "down" }
+          ]}
         },
-        {
-            "type": "NumberSpinner",
-            "name": "DurationVarId",
-            "caption": "Z2M Duration Variable"
+        { "caption": "Geste", "name": "gesture", "width": "120px",
+          "edit": { "type": "ComboBox", "options": [
+              { "caption": "Kurz", "value": "short" },
+              { "caption": "Lang", "value": "long" },
+              { "caption": "Halten Start", "value": "hold_start" },
+              { "caption": "Halten Ende", "value": "hold_stop" }
+          ]}
         },
-        {
-            "type": "NumberSpinner",
-            "name": "RoomInstanceId",
-            "caption": "RoomMotionLightsDev2 Instanz (optional)"
+        { "caption": "Aktion", "name": "actionType", "width": "200px",
+          "edit": { "type": "ComboBox", "options": [
+              { "caption": "Licht an / Farbtemperatur", "value": "TARGETS_ON_OR_CT" },
+              { "caption": "Licht ausschalten", "value": "TARGETS_OFF" },
+              { "caption": "Automatik AUS (RML)", "value": "RML_DISABLE_AUTOMATION" },
+              { "caption": "Automatik EIN + Licht AUS (RML)", "value": "RML_ALL_OFF" },
+              { "caption": "Dimmen (Schritt)", "value": "DIM_STEP" },
+              { "caption": "Dimmen halten (Start)", "value": "DIM_HOLD_START" },
+              { "caption": "Dimmen halten (Stop)", "value": "DIM_HOLD_STOP" }
+          ]}
         },
-        {
-            "type": "ValidationTextBox",
-            "name": "HoldThreshold",
-            "caption": "Hold Threshold (Sekunden)"
-        },
-        {
-            "type": "List",
-            "name": "Targets",
-            "caption": "Ziel-Lichter",
-            "columns": [
-                { "caption": "Name", "name": "name", "width": "200px", "add": "" },
-                { "caption": "SwitchVar", "name": "switchVar", "width": "100px", "add": 0 },
-                { "caption": "DimmerVar", "name": "dimmerVar", "width": "100px", "add": 0 },
-                { "caption": "CTVar", "name": "ctVar", "width": "100px", "add": 0 }
-            ],
-            "add": true,
-            "delete": true
-        },
-        {
-            "type": "List",
-            "name": "ButtonMap",
-            "caption": "Button Mapping",
-            "columns": [
-                { "caption": "Button", "name": "button", "width": "80px", "add": "on" },
-                { "caption": "Gesture", "name": "gesture", "width": "80px", "add": "short" },
-                { "caption": "Action", "name": "actionType", "width": "200px", "add": "" },
-                { "caption": "Parameter", "name": "param", "width": "200px", "add": "" }
-            ],
-            "add": true,
-            "delete": true
-        },
-        {
-            "type": "CheckBox",
-            "name": "EnableDefaultProfile",
-            "caption": "Hue Standardprofil aktivieren"
-        }
-    ],
-    "actions": [
-        {
-            "type": "Button",
-            "caption": "Hue-Standardprofil laden",
-            "onClick": "HZ2MR_LoadDefaultProfile($id);"
-        }
-    ]
+        { "caption": "Parameter", "name": "param", "width": "180px", "edit": { "type": "ValidationTextBox" }}
+      ]
+    }
+  ],
+
+  "actions": [
+    {
+      "type": "Button",
+      "caption": "Hue Standardprofil laden",
+      "onClick": "HZ2MR_LoadDefaultProfile($id);"
+    }
+  ],
+
+  "status": []
 }
