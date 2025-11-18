@@ -1,0 +1,62 @@
+{
+    "elements": [
+        {
+            "type": "NumberSpinner",
+            "name": "ActionVarId",
+            "caption": "Z2M Action Variable"
+        },
+        {
+            "type": "NumberSpinner",
+            "name": "DurationVarId",
+            "caption": "Z2M Duration Variable"
+        },
+        {
+            "type": "NumberSpinner",
+            "name": "RoomInstanceId",
+            "caption": "RoomMotionLightsDev2 Instanz (optional)"
+        },
+        {
+            "type": "ValidationTextBox",
+            "name": "HoldThreshold",
+            "caption": "Hold Threshold (Sekunden)"
+        },
+        {
+            "type": "List",
+            "name": "Targets",
+            "caption": "Ziel-Lichter",
+            "columns": [
+                { "caption": "Name", "name": "name", "width": "200px", "add": "" },
+                { "caption": "SwitchVar", "name": "switchVar", "width": "100px", "add": 0 },
+                { "caption": "DimmerVar", "name": "dimmerVar", "width": "100px", "add": 0 },
+                { "caption": "CTVar", "name": "ctVar", "width": "100px", "add": 0 }
+            ],
+            "add": true,
+            "delete": true
+        },
+        {
+            "type": "List",
+            "name": "ButtonMap",
+            "caption": "Button Mapping",
+            "columns": [
+                { "caption": "Button", "name": "button", "width": "80px", "add": "on" },
+                { "caption": "Gesture", "name": "gesture", "width": "80px", "add": "short" },
+                { "caption": "Action", "name": "actionType", "width": "200px", "add": "" },
+                { "caption": "Parameter", "name": "param", "width": "200px", "add": "" }
+            ],
+            "add": true,
+            "delete": true
+        },
+        {
+            "type": "CheckBox",
+            "name": "EnableDefaultProfile",
+            "caption": "Hue Standardprofil aktivieren"
+        }
+    ],
+    "actions": [
+        {
+            "type": "Button",
+            "caption": "Hue-Standardprofil laden",
+            "onClick": "HZ2MR_LoadDefaultProfile($id);"
+        }
+    ]
+}

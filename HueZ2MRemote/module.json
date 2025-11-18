@@ -1,0 +1,13 @@
+{
+    "id": "{A52A1390-D5CC-43D9-B5B6-064FEDE92CBC}",
+    "name": "HueZ2MRemote",
+    "type": 3,
+    "vendor": "Murcel",
+    "aliases": [
+        "Hue Remote (Zigbee2MQTT)"
+    ],
+    "parentRequirements": [],
+    "childRequirements": [],
+    "implemented": [],
+    "prefix": "HZ2MR"
+}
