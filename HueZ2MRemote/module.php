@@ -21,9 +21,9 @@ class HueZ2MRemote extends IPSModule
         $this->RegisterPropertyInteger('DimStepHold', 3);
 
         // Farbtemperatur (COLOR_TEMP)
-        $this->RegisterPropertyInteger('CTCold', 153);
-        $this->RegisterPropertyInteger('CTNeutral', 250);
-        $this->RegisterPropertyInteger('CTWarm', 370);
+        $this->RegisterPropertyInteger('CTCold', 250);
+        $this->RegisterPropertyInteger('CTNeutral', 370);
+        $this->RegisterPropertyInteger('CTWarm', 454);
 
         // Button-Mapping JSON (button, gesture, actionType, param)
         $this->RegisterPropertyString('ButtonMap', '[]');
