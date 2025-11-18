@@ -120,6 +120,7 @@ class HueZ2MRemote extends IPSModule
 
     private function HandleActionUpdate(): void
     {
+        $this->SendDebug('HandleActionUpdate', 'Triggered via ActionVar update', 0);
         $actionVarId = $this->ReadPropertyInteger('ActionVarId');
         if ($actionVarId <= 0 || !IPS_VariableExists($actionVarId)) {
             return;
@@ -130,7 +131,7 @@ class HueZ2MRemote extends IPSModule
             return;
         }
 
-        IPS_LogMessage('HueZ2MRemote', 'Action=' . $action);
+        $this->SendDebug('Action', $action, 0);
 
         [$button, $gesture] = $this->ParseActionString($action);
         if ($button === '' || $gesture === '') {
@@ -182,6 +183,7 @@ class HueZ2MRemote extends IPSModule
      */
     private function ParseActionString(string $action): array
     {
+        $this->SendDebug('ParseActionString', 'Raw=' . $action, 0);
         $lower = mb_strtolower($action);
 
         // Button bestimmen
@@ -227,7 +229,7 @@ class HueZ2MRemote extends IPSModule
             // Falls nur ein einfaches *_press käme
             $gesture = 'short';
         }
-
+        $this->SendDebug('ParseResult', 'Button=' . $button . ' Gesture=' . $gesture, 0);
         return [$button, $gesture];
     }
 
@@ -263,6 +265,7 @@ class HueZ2MRemote extends IPSModule
 
     private function ExecuteMapping(string $button, string $gesture, string $action, float $duration): void
     {
+        $this->SendDebug('ExecuteMapping', 'button=' . $button . ' gesture=' . $gesture, 0);
         $buttonMapJson = $this->ReadPropertyString('ButtonMap');
         $buttonMap     = json_decode($buttonMapJson, true);
 
@@ -288,6 +291,7 @@ class HueZ2MRemote extends IPSModule
             $eButton  = $entry['button'] ?? '';
             $eGesture = $entry['gesture'] ?? '';
             if ($eButton === $button && $eGesture === $gesture) {
+                $this->SendDebug('MappingHit', json_encode($entry), 0);
                 $actionType = $entry['actionType'] ?? '';
                 $param      = $entry['param'] ?? '';
                 $this->DoActionType($actionType, $param, $button, $gesture, $duration);
@@ -533,6 +537,7 @@ class HueZ2MRemote extends IPSModule
 
     private function CycleColorTemperature(array $targets): void
     {
+        $this->SendDebug('CT', 'CycleColorTemperature called', 0);
         // CTs aus Properties
         $ctValues = [
             $this->ReadPropertyInteger('CTCold'),
@@ -543,6 +548,7 @@ class HueZ2MRemote extends IPSModule
         $ctValues = array_values(array_filter($ctValues, function ($v) {
             return $v > 0;
         }));
+        $this->SendDebug('CT', 'Values=' . json_encode($ctValues), 0);
 
         if (count($ctValues) === 0) {
             return;
@@ -550,9 +556,11 @@ class HueZ2MRemote extends IPSModule
 
         $index = $this->ReadAttributeInteger('CTSceneIndex');
         $index = ($index + 1) % count($ctValues);
+        $this->SendDebug('CT', 'Index=' . $index, 0);
         $this->WriteAttributeInteger('CTSceneIndex', $index);
 
         $ct = $ctValues[$index];
+        $this->SendDebug('CT', 'SelectedCT=' . $ct, 0);
 
         foreach ($targets as $t) {
             $ctVar = (int) ($t['ctVar'] ?? 0);
@@ -564,6 +572,7 @@ class HueZ2MRemote extends IPSModule
 
     private function DoDimStep(int $step): void
     {
+        $this->SendDebug('DoDimStep', 'step=' . $step, 0);
         $targets = $this->GetAllLightTargets();
         if (count($targets) === 0) {
             return;
@@ -581,18 +590,21 @@ class HueZ2MRemote extends IPSModule
 
     private function StartDimHold(int $direction): void
     {
+        $this->SendDebug('StartDimHold', 'direction=' . $direction, 0);
         $this->WriteAttributeInteger('DimDirection', $direction);
         $this->SetTimerInterval('DimLoop', 150); // alle 150ms ein Schritt
     }
 
     private function StopDimHold(): void
     {
+        $this->SendDebug('StopDimHold', 'Stopping dim loop', 0);
         $this->WriteAttributeInteger('DimDirection', 0);
         $this->SetTimerInterval('DimLoop', 0);
     }
 
     public function DimLoop(): void
     {
+        $this->SendDebug('DimLoop', 'direction=' . $this->ReadAttributeInteger('DimDirection'), 0);
         $direction = $this->ReadAttributeInteger('DimDirection');
         if ($direction === 0) {
             $this->SetTimerInterval('DimLoop', 0);
