@@ -37,113 +37,126 @@
       "type": "Label",
       "caption": "Ziel-Lichter (einzelne Lampen oder Gruppen)"
     },
-{
-  "type": "List",
-  "name": "Targets",
-  "caption": "Ziele",
-  "rowCount": 5,
-  "add": true,
-  "delete": true,
-  "columns": [
     {
-      "caption": "Name",
-      "name": "name",
-      "width": "200px",
-      "add": "",
-      "edit": { "type": "ValidationTextBox" }
+      "type": "List",
+      "name": "Targets",
+      "caption": "Ziele",
+      "rowCount": 5,
+      "add": true,
+      "delete": true,
+      "columns": [
+        {
+          "caption": "Name",
+          "name": "name",
+          "width": "200px",
+          "add": "",
+          "edit": {
+            "type": "ValidationTextBox"
+          }
+        },
+        {
+          "caption": "SwitchVar",
+          "name": "switchVar",
+          "width": "120px",
+          "add": 0,
+          "edit": {
+            "type": "SelectVariable",
+            "filter": "Boolean"
+          }
+        },
+        {
+          "caption": "DimmerVar",
+          "name": "dimmerVar",
+          "width": "120px",
+          "add": 0,
+          "edit": {
+            "type": "SelectVariable",
+            "filter": "Integer"
+          }
+        },
+        {
+          "caption": "CTVar (COLOR_TEMP)",
+          "name": "ctVar",
+          "width": "140px",
+          "add": 0,
+          "edit": {
+            "type": "SelectVariable",
+            "filter": "Integer"
+          }
+        }
+      ]
     },
-    {
-      "caption": "SwitchVar",
-      "name": "switchVar",
-      "width": "120px",
-      "add": 0,
-      "edit": { "type": "SelectVariable", "filter": "Boolean" }
-    },
-    {
-      "caption": "DimmerVar",
-      "name": "dimmerVar",
-      "width": "120px",
-      "add": 0,
-      "edit": { "type": "SelectVariable", "filter": "Integer" }
-    },
-    {
-      "caption": "CTVar (COLOR_TEMP)",
-      "name": "ctVar",
-      "width": "140px",
-      "add": 0,
-      "edit": { "type": "SelectVariable", "filter": "Integer" }
-    }
-  ]
-},
 
     {
       "type": "Label",
       "caption": "Button Mapping (erweitert)"
     },
-{
-  "type": "List",
-  "name": "ButtonMap",
-  "rowCount": 6,
-  "add": true,
-  "delete": true,
-  "columns": [
     {
-      "caption": "Button",
-      "name": "button",
-      "width": "80px",
-      "add": "on",
-      "edit": {
-        "type": "ComboBox",
-        "options": [
-          { "caption": "Ein (on)", "value": "on" },
-          { "caption": "Aus (off)", "value": "off" },
-          { "caption": "Heller (up)", "value": "up" },
-          { "caption": "Dunkler (down)", "value": "down" }
-        ]
-      }
-    },
-    {
-      "caption": "Geste",
-      "name": "gesture",
-      "width": "120px",
-      "add": "short",
-      "edit": {
-        "type": "ComboBox",
-        "options": [
-          { "caption": "Kurz", "value": "short" },
-          { "caption": "Lang", "value": "long" },
-          { "caption": "Halten Start", "value": "hold_start" },
-          { "caption": "Halten Ende", "value": "hold_stop" }
-        ]
-      }
-    },
-    {
-      "caption": "Aktion",
-      "name": "actionType",
-      "width": "200px",
-      "add": "TARGETS_ON_OR_CT",
-      "edit": {
-        "type": "ComboBox",
-        "options": [
-          { "caption": "Licht an / Farbtemperatur", "value": "TARGETS_ON_OR_CT" },
-          { "caption": "Licht ausschalten", "value": "TARGETS_OFF" },
-          { "caption": "Automatik AUS (RML)", "value": "RML_DISABLE_AUTOMATION" },
-          { "caption": "Automatik EIN + Licht AUS (RML)", "value": "RML_ALL_OFF" },
-          { "caption": "Dimmen (Schritt)", "value": "DIM_STEP" },
-          { "caption": "Dimmen halten (Start)", "value": "DIM_HOLD_START" },
-          { "caption": "Dimmen halten (Stop)", "value": "DIM_HOLD_STOP" }
-        ]
-      }
-    },
-    {
-      "caption": "Parameter",
-      "name": "param",
-      "width": "180px",
-      "add": "",
-      "edit": { "type": "ValidationTextBox" }
+      "type": "List",
+      "name": "ButtonMap",
+      "rowCount": 6,
+      "add": true,
+      "delete": true,
+      "columns": [
+        {
+          "caption": "Button",
+          "name": "button",
+          "width": "90px",
+          "add": "on",
+          "edit": {
+            "type": "Select",
+            "options": [
+              { "caption": "Ein (on)", "value": "on" },
+              { "caption": "Aus (off)", "value": "off" },
+              { "caption": "Heller (up)", "value": "up" },
+              { "caption": "Dunkler (down)", "value": "down" }
+            ]
+          }
+        },
+        {
+          "caption": "Geste",
+          "name": "gesture",
+          "width": "130px",
+          "add": "short",
+          "edit": {
+            "type": "Select",
+            "options": [
+              { "caption": "Kurz", "value": "short" },
+              { "caption": "Lang", "value": "long" },
+              { "caption": "Halten Start", "value": "hold_start" },
+              { "caption": "Halten Ende", "value": "hold_stop" }
+            ]
+          }
+        },
+        {
+          "caption": "Aktion",
+          "name": "actionType",
+          "width": "220px",
+          "add": "TARGETS_ON_OR_CT",
+          "edit": {
+            "type": "Select",
+            "options": [
+              { "caption": "Licht an / Farbtemperatur", "value": "TARGETS_ON_OR_CT" },
+              { "caption": "Licht ausschalten", "value": "TARGETS_OFF" },
+              { "caption": "Automatik AUS (RML)", "value": "RML_DISABLE_AUTOMATION" },
+              { "caption": "Automatik EIN + Licht AUS (RML)", "value": "RML_ALL_OFF" },
+              { "caption": "Dimmen (Schritt)", "value": "DIM_STEP" },
+              { "caption": "Dimmen halten (Start)", "value": "DIM_HOLD_START" },
+              { "caption": "Dimmen halten (Stop)", "value": "DIM_HOLD_STOP" }
+            ]
+          }
+        },
+        {
+          "caption": "Parameter",
+          "name": "param",
+          "width": "180px",
+          "add": "",
+          "edit": {
+            "type": "ValidationTextBox"
+          }
+        }
+      ]
     }
-  ]
-}
   ],
 
   "actions": [
