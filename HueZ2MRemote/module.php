@@ -182,56 +182,60 @@ class HueZ2MRemote extends IPSModule
      *    - long       : on/off *_press_hold_release  (für ON-Langdruck Automatik AUS)
      */
     private function ParseActionString(string $action): array
-    {
-        $this->SendDebug('ParseActionString', 'Raw=' . $action, 0);
-        $lower = mb_strtolower($action);
+{
+    $this->SendDebug('ParseActionString', 'Raw=' . $action, 0);
+    $lower = mb_strtolower($action);
 
-        // Button bestimmen
-        $button = '';
-        if (mb_strpos($lower, 'on_') === 0) {
-            $button = 'on';
-        } elseif (mb_strpos($lower, 'off_') === 0) {
+    // Button bestimmen
+    $button = '';
+    if (mb_strpos($lower, 'on_') === 0) {
+        $button = 'on';
+    } elseif (mb_strpos($lower, 'off_') === 0) {
+        $button = 'off';
+    } elseif (mb_strpos($lower, 'up_') === 0) {
+        $button = 'up';
+    } elseif (mb_strpos($lower, 'down_') === 0) {
+        $button = 'down';
+    } else {
+        // Fallback: generische Suche (robust gegenüber anderen Devices)
+        if (mb_strpos($lower, 'off') !== false) {
             $button = 'off';
-        } elseif (mb_strpos($lower, 'up_') === 0) {
+        } elseif (mb_strpos($lower, 'on') !== false) {
+            $button = 'on';
+        } elseif (mb_strpos($lower, 'up') !== false) {
             $button = 'up';
-        } elseif (mb_strpos($lower, 'down_') === 0) {
+        } elseif (mb_strpos($lower, 'down') !== false) {
             $button = 'down';
-        } else {
-            // Fallback: generische Suche (robust gegenüber anderen Devices)
-            if (mb_strpos($lower, 'off') !== false) {
-                $button = 'off';
-            } elseif (mb_strpos($lower, 'on') !== false) {
-                $button = 'on';
-            } elseif (mb_strpos($lower, 'up') !== false) {
-                $button = 'up';
-            } elseif (mb_strpos($lower, 'down') !== false) {
-                $button = 'down';
-            }
         }
-
-        // Geste bestimmen
-        $gesture = '';
-
-        if (mb_strpos($lower, '_press_hold_release') !== false) {
-            if ($button === 'on' || $button === 'off') {
-                // ON/OFF lang -> für Automatik
-                $gesture = 'long';
-            } elseif ($button === 'up' || $button === 'down') {
-                // Up/Down: halten loslassen -> stufenloses Dimmen beenden
-                $gesture = 'hold_stop';
-            }
-        } elseif (mb_strpos($lower, '_press_hold') !== false) {
-            // Übergang von "Drücken" zu "Halten"
-            $gesture = 'hold_start';
-        } elseif (mb_strpos($lower, '_press_release') !== false) {
-            $gesture = 'short';
-        } elseif (mb_strpos($lower, '_press') !== false) {
-            // Falls nur ein einfaches *_press käme
-            $gesture = 'short';
-        }
-        $this->SendDebug('ParseResult', 'Button=' . $button . ' Gesture=' . $gesture, 0);
-        return [$button, $gesture];
     }
+
+    // Geste bestimmen
+    $gesture = '';
+
+    // 1) Halten losgelassen
+    if (mb_strpos($lower, '_press_hold_release') !== false) {
+        if ($button === 'on' || $button === 'off') {
+            // ON/OFF lang -> Automatik
+            $gesture = 'long';
+        } elseif ($button === 'up' || $button === 'down') {
+            // Up/Down: halten loslassen -> stufenloses Dimmen beenden
+            $gesture = 'hold_stop';
+        }
+
+    // 2) Halten begonnen
+    } elseif (mb_strpos($lower, '_press_hold') !== false) {
+        $gesture = 'hold_start';
+
+    // 3) normaler kurzer Klick -> nur *_press_release!
+    } elseif (mb_strpos($lower, '_press_release') !== false) {
+        $gesture = 'short';
+
+    // 4) reines *_press ignorieren (kein Gesture-Flag)
+    }
+
+    $this->SendDebug('ParseResult', 'Button=' . $button . ' Gesture=' . $gesture, 0);
+    return [$button, $gesture];
+}
 
     private function GetActionDuration(): float
     {
