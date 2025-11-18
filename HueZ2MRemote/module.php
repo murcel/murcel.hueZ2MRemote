@@ -683,24 +683,3 @@ class HueZ2MRemote extends IPSModule
         IPS_ApplyChanges($this->InstanceID);
     }
 }
-
-/* ========================================================================== */
-/*   Globale Wrapper für Timer / Button                                      */
-/* ========================================================================== */
-
-function HZ2MR_DimLoop($InstanceID)
-{
-    if (!IPS_InstanceExists($InstanceID)) {
-        return;
-    }
-    $obj = new HueZ2MRemote($InstanceID);
-    $obj->DimLoop();
-}
-
-function HZ2MR_LoadDefaultProfile($InstanceID)
-{
-    if (!IPS_InstanceExists($InstanceID)) {
-        return;
-    }
-    IPS_RequestAction($InstanceID, 'LoadDefaultProfile', 0);
-}
