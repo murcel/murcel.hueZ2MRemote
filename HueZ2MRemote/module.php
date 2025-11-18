@@ -538,41 +538,77 @@ class HueZ2MRemote extends IPSModule
             }
         }
     }
+    private function DetectCtIndexFromCurrent(array $targets, array $ctValues): int
+{
+    foreach ($targets as $t) {
+        $ctVar = (int)($t['ctVar'] ?? 0);
+        if ($ctVar > 0 && IPS_VariableExists($ctVar)) {
+            $cur = (int)@GetValueInteger($ctVar);
+            $this->SendDebug('CT', 'CurrentCT=' . $cur, 0);
 
-    private function CycleColorTemperature(array $targets): void
-    {
-        $this->SendDebug('CT', 'CycleColorTemperature called', 0);
-        // CTs aus Properties
-        $ctValues = [
-            $this->ReadPropertyInteger('CTCold'),
-            $this->ReadPropertyInteger('CTNeutral'),
-            $this->ReadPropertyInteger('CTWarm')
-        ];
-
-        $ctValues = array_values(array_filter($ctValues, function ($v) {
-            return $v > 0;
-        }));
-        $this->SendDebug('CT', 'Values=' . json_encode($ctValues), 0);
-
-        if (count($ctValues) === 0) {
-            return;
-        }
-
-        $index = $this->ReadAttributeInteger('CTSceneIndex');
-        $index = ($index + 1) % count($ctValues);
-        $this->SendDebug('CT', 'Index=' . $index, 0);
-        $this->WriteAttributeInteger('CTSceneIndex', $index);
-
-        $ct = $ctValues[$index];
-        $this->SendDebug('CT', 'SelectedCT=' . $ct, 0);
-
-        foreach ($targets as $t) {
-            $ctVar = (int) ($t['ctVar'] ?? 0);
-            if ($ctVar > 0 && IPS_VariableExists($ctVar)) {
-                @RequestAction($ctVar, $ct);
+            foreach ($ctValues as $idx => $val) {
+                if ($cur === $val) {
+                    $this->SendDebug('CT', 'CurrentCT matches index ' . $idx, 0);
+                    return $idx;
+                }
             }
+            // Ersten CT gefunden, aber keiner unserer definierten Werte
+            $this->SendDebug('CT', 'CurrentCT not in defined list', 0);
+            return -1;
         }
     }
+
+    // Kein ctVar vorhanden
+    $this->SendDebug('CT', 'No ctVar found on targets', 0);
+    return -1;
+}
+
+private function CycleColorTemperature(array $targets): void
+{
+    $this->SendDebug('CT', 'CycleColorTemperature called', 0);
+
+    // CTs aus Properties
+    $ctValues = [
+        $this->ReadPropertyInteger('CTCold'),
+        $this->ReadPropertyInteger('CTNeutral'),
+        $this->ReadPropertyInteger('CTWarm')
+    ];
+
+    // Nur sinnvolle Werte (>0) verwenden
+    $ctValues = array_values(array_filter($ctValues, function ($v) {
+        return $v > 0;
+    }));
+    $this->SendDebug('CT', 'Values=' . json_encode($ctValues), 0);
+
+    if (count($ctValues) === 0) {
+        $this->SendDebug('CT', 'No CT values configured', 0);
+        return;
+    }
+
+    // Aktuelle CT-Stufe am ersten Ziel ermitteln
+    $currentIndex = $this->DetectCtIndexFromCurrent($targets, $ctValues);
+
+    if ($currentIndex >= 0) {
+        $nextIndex = ($currentIndex + 1) % count($ctValues);
+        $this->SendDebug('CT', 'Detected index ' . $currentIndex . ' -> nextIndex=' . $nextIndex, 0);
+    } else {
+        // Kein passender Wert → bei erster Stufe anfangen
+        $nextIndex = 0;
+        $this->SendDebug('CT', 'No matching CT, starting at index 0', 0);
+    }
+
+    $this->WriteAttributeInteger('CTSceneIndex', $nextIndex);
+
+    $ct = $ctValues[$nextIndex];
+    $this->SendDebug('CT', 'SelectedCT=' . $ct, 0);
+
+    foreach ($targets as $t) {
+        $ctVar = (int)($t['ctVar'] ?? 0);
+        if ($ctVar > 0 && IPS_VariableExists($ctVar)) {
+            @RequestAction($ctVar, $ct);
+        }
+    }
+}
 
     private function DoDimStep(int $step): void
     {
