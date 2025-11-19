@@ -32,13 +32,9 @@ class HueZ2MRemote extends IPSModule
         $this->RegisterAttributeInteger('LastActionVarId', 0);
         $this->RegisterAttributeInteger('DimDirection', 0);
         $this->RegisterAttributeInteger('CTSceneIndex', 0);
-        $this->RegisterAttributeInteger('LongPressPending', 0);
-        $this->RegisterAttributeInteger('LongPressFired', 0);
 
         // Timer für stufenloses Dimmen
         $this->RegisterTimer('DimLoop', 0, 'HZ2MR_DimLoop($_IPS["TARGET"]);');
-        // Timer für ON-Langdruck (Automatik deaktivieren nach Halteschwelle)
-        $this->RegisterTimer('LongPressTimer', 0, 'HZ2MR_LongPressTimer($_IPS["TARGET"]);');
     }
 
     public function ApplyChanges()
@@ -63,10 +59,6 @@ class HueZ2MRemote extends IPSModule
         // Dim-Loop immer stoppen bei Konfig-Änderungen
         $this->SetTimerInterval('DimLoop', 0);
         $this->WriteAttributeInteger('DimDirection', 0);
-        // Long-Press-Timer zurücksetzen
-        $this->SetTimerInterval('LongPressTimer', 0);
-        $this->WriteAttributeInteger('LongPressPending', 0);
-        $this->WriteAttributeInteger('LongPressFired', 0);
     }
 
     public function GetConfigurationForm()
@@ -148,36 +140,17 @@ class HueZ2MRemote extends IPSModule
         }
 
         $duration = 0.0;
-
-        // Spezielles Handling für ON-Langdruck:
-        if ($button === 'on' && $gesture === 'long_start') {
-            // Longpress-Überwachung starten
-            $this->WriteAttributeInteger('LongPressPending', 1);
-            $this->WriteAttributeInteger('LongPressFired', 0);
-
+        // Nur bei "long" prüfen wir die Aktionsdauer
+        if ($gesture === 'long') {
+            $duration  = $this->GetActionDuration();
             $threshold = $this->ReadPropertyFloat('HoldThreshold');
-            $intervalMs = (int) round($threshold * 1000);
-            $this->SendDebug('LongPress', 'Starting timer with ' . $intervalMs . 'ms', 0);
-            $this->SetTimerInterval('LongPressTimer', $intervalMs);
-            return;
-        }
-
-        if ($button === 'on' && $gesture === 'long_stop') {
-            // Taste losgelassen -> Timer stoppen, ggf. nichts mehr tun
-            $this->SetTimerInterval('LongPressTimer', 0);
-            $pending = $this->ReadAttributeInteger('LongPressPending');
-            $fired   = $this->ReadAttributeInteger('LongPressFired');
-            $this->WriteAttributeInteger('LongPressPending', 0);
-
-            if (!$fired) {
-                $this->SendDebug('LongPress', 'Released before threshold -> no action', 0);
-            } else {
-                $this->SendDebug('LongPress', 'Released after action already fired', 0);
+            IPS_LogMessage('HueZ2MRemote', sprintf('Duration=%.3fs (threshold=%.3fs)', $duration, $threshold));
+            if ($duration < $threshold) {
+                IPS_LogMessage('HueZ2MRemote', 'Long-press too short -> ignored');
+                return;
             }
-            return;
         }
 
-        // Für alle anderen Gesten (short, hold_start/hold_stop, etc.) ganz normal Mapping ausführen
         $this->ExecuteMapping($button, $gesture, $action, $duration);
     }
 
@@ -239,27 +212,40 @@ class HueZ2MRemote extends IPSModule
         // Geste bestimmen
         $gesture = '';
 
-        // 1) Halten losgelassen (press-basierte oder generische *_hold_release-Variante)
-        if (mb_strpos($lower, '_press_hold_release') !== false || mb_strpos($lower, '_hold_release') !== false) {
-            if ($button === 'up' || $button === 'down') {
+        // 1) Halten losgelassen (press-basierte Variante)
+        if (mb_strpos($lower, '_press_hold_release') !== false) {
+            if ($button === 'on' || $button === 'off') {
+                // ON/OFF lang -> Automatik
+                $gesture = 'long';
+            } elseif ($button === 'up' || $button === 'down') {
                 // Up/Down: halten loslassen -> stufenloses Dimmen beenden
                 $gesture = 'hold_stop';
-            } elseif ($button === 'on' || $button === 'off') {
-                // ON/OFF: Halten losgelassen -> Longpress endet
-                $gesture = 'long_stop';
             }
 
-        // 2) Halten begonnen (press-basierte oder generische *_hold-Variante)
-        } elseif (mb_strpos($lower, '_press_hold') !== false || (mb_strpos($lower, '_hold') !== false && mb_strpos($lower, '_hold_release') === false)) {
+        // 1b) Halten losgelassen (generische *_hold_release-Variante, z. B. up_hold_release)
+        } elseif (mb_strpos($lower, '_hold_release') !== false) {
+            if ($button === 'up' || $button === 'down') {
+                $gesture = 'hold_stop';
+            } elseif ($button === 'on' || $button === 'off') {
+                $gesture = 'long';
+            }
+
+        // 2) Halten begonnen (press-basierte Variante)
+        } elseif (mb_strpos($lower, '_press_hold') !== false) {
+            $gesture = 'hold_start';
+
+        // 2b) Halten begonnen (generische *_hold-Variante, z. B. up_hold)
+        } elseif (mb_strpos($lower, '_hold') !== false) {
+            // *_hold_release wäre bereits oben abgefangen
             if ($button === 'up' || $button === 'down') {
                 $gesture = 'hold_start';
-            } elseif ($button === 'on' || $button === 'off') {
-                $gesture = 'long_start';
             }
 
         // 3) normaler kurzer Klick -> nur *_press_release!
         } elseif (mb_strpos($lower, '_press_release') !== false) {
             $gesture = 'short';
+
+        // 4) reines *_press ignorieren (kein Gesture-Flag)
         }
 
         $this->SendDebug('ParseResult', 'Button=' . $button . ' Gesture=' . $gesture, 0);
@@ -771,24 +757,5 @@ private function CycleColorTemperature(array $targets): void
         $json = json_encode($map);
         IPS_SetProperty($this->InstanceID, 'ButtonMap', $json);
         IPS_ApplyChanges($this->InstanceID);
-    }
-    public function LongPressTimer(): void
-    {
-        $this->SendDebug('LongPressTimer', 'Timer fired', 0);
-        $pending = $this->ReadAttributeInteger('LongPressPending');
-        if ($pending !== 1) {
-            $this->SendDebug('LongPressTimer', 'No pending long-press -> ignoring', 0);
-            $this->SetTimerInterval('LongPressTimer', 0);
-            return;
-        }
-
-        // Markieren, dass der Longpress ausgelöst wurde
-        $this->WriteAttributeInteger('LongPressFired', 1);
-        $this->SetTimerInterval('LongPressTimer', 0);
-
-        // Mapping für ON/LONG auslösen, als ob ein long-Event gekommen wäre
-        $threshold = $this->ReadPropertyFloat('HoldThreshold');
-        $this->SendDebug('LongPressTimer', 'Triggering mapping on long (button=on, gesture=long)', 0);
-        $this->ExecuteMapping('on', 'long', 'synthetic_long_press', $threshold);
     }
 }
