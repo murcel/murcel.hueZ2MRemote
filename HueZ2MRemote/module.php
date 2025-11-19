@@ -653,7 +653,7 @@ private function CycleColorTemperature(array $targets): void
     {
         $this->SendDebug('StartDimHold', 'direction=' . $direction, 0);
         $this->WriteAttributeInteger('DimDirection', $direction);
-        $this->SetTimerInterval('DimLoop', 150); // alle 150ms ein Schritt
+        $this->SetTimerInterval('DimLoop', 100); // alle 150ms ein Schritt
     }
 
     private function StopDimHold(): void
