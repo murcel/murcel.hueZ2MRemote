@@ -637,7 +637,13 @@ private function CycleColorTemperature(array $targets): void
             $dv = (int) ($t['dimmerVar'] ?? 0);
             if ($dv > 0 && IPS_VariableExists($dv)) {
                 $cur = (int) @GetValueInteger($dv);
-                $new = max(0, min(100, $cur + $step));
+                $new = $cur + $step;
+
+                // Begrenzung: Nie unter 15 %, nie über 100 %
+                $min = 15;
+                $max = 100;
+                $new = max($min, min($max, $new));
+
                 @RequestAction($dv, $new);
             }
         }
