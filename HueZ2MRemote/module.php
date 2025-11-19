@@ -433,49 +433,52 @@ class HueZ2MRemote extends IPSModule
 
     private function DoVisualFeedback(array $lights): void
     {
-        $doDimPulse = function (int $dimmerVarId) {
-            if (!IPS_VariableExists($dimmerVarId)) {
-                return;
-            }
-            $cur = (int) @GetValueInteger($dimmerVarId);
-            if ($cur <= 0) {
-                return;
-            }
-            $down = max(1, (int) round($cur * 0.6)); // 40 % Dip
-
-            @RequestAction($dimmerVarId, $down);
-            IPS_Sleep(150);
-            @RequestAction($dimmerVarId, $cur);
-            IPS_Sleep(150);
-            @RequestAction($dimmerVarId, $down);
-            IPS_Sleep(150);
-            @RequestAction($dimmerVarId, $cur);
-        };
-
-        $doBlink = function (int $switchVarId) {
+        // 3× deutliches Blinken aller beteiligten Lichter
+        $doBlinkSwitch = function (int $switchVarId) {
             if (!IPS_VariableExists($switchVarId)) {
                 return;
             }
             $wasOn = (bool) @GetValueBoolean($switchVarId);
             if (!$wasOn) {
+                // Wenn das Licht aus ist, kein Feedback (optionale Design-Entscheidung)
                 return;
             }
-            @RequestAction($switchVarId, false);
-            IPS_Sleep(120);
-            @RequestAction($switchVarId, true);
-            IPS_Sleep(120);
-            @RequestAction($switchVarId, false);
-            IPS_Sleep(120);
-            @RequestAction($switchVarId, true);
+
+            for ($i = 0; $i < 3; $i++) {
+                @RequestAction($switchVarId, false);
+                IPS_Sleep(150);
+                @RequestAction($switchVarId, true);
+                IPS_Sleep(150);
+            }
+        };
+
+        $doBlinkDimmer = function (int $dimmerVarId) {
+            if (!IPS_VariableExists($dimmerVarId)) {
+                return;
+            }
+            $cur = (int) @GetValueInteger($dimmerVarId);
+            if ($cur <= 0) {
+                // Wenn bereits sehr dunkel/aus, kein sinnvolles Feedback möglich
+                return;
+            }
+
+            for ($i = 0; $i < 3; $i++) {
+                @RequestAction($dimmerVarId, 0);
+                IPS_Sleep(150);
+                @RequestAction($dimmerVarId, $cur);
+                IPS_Sleep(150);
+            }
         };
 
         foreach ($lights as $l) {
             $sv = (int) ($l['switchVar'] ?? 0);
             $dv = (int) ($l['dimmerVar'] ?? 0);
-            if ($dv > 0 && IPS_VariableExists($dv)) {
-                $doDimPulse($dv);
-            } elseif ($sv > 0 && IPS_VariableExists($sv)) {
-                $doBlink($sv);
+
+            // Bevorzugt über Switch-Var blinken, falls vorhanden
+            if ($sv > 0 && IPS_VariableExists($sv)) {
+                $doBlinkSwitch($sv);
+            } elseif ($dv > 0 && IPS_VariableExists($dv)) {
+                $doBlinkDimmer($dv);
             }
         }
     }
